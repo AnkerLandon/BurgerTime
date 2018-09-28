@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { connect } from 'react-redux';
 
 import Aux from '../../HOC/Auxx';
 import Burger from '../../components/Burger/Burger';
@@ -8,6 +9,7 @@ import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import errorHandler from '../../HOC/ErrorHandler/ErrorHandler';
+import * as actionTypes from '../../store/actions';
 
 const INGREDIENT_PRICES = {
     salad: .5,
@@ -19,7 +21,6 @@ const INGREDIENT_PRICES = {
 class BurgerBuilder extends Component {
 
     state = {
-        ingredients: null,
         totalPrice: 4,
         purchasable: false,
         viewCart: false,
@@ -27,12 +28,12 @@ class BurgerBuilder extends Component {
     };
 
     componentDidMount () {
-        console.log('props', this.props); 
-        axios.get('https://react-burger-1b447.firebaseio.com/ingredients.json')
-            .then(res => {
-                console.log('res',res);
-                this.setState({ingredients: res.data});
-            });
+        // console.log('props', this.props); 
+        // axios.get('https://react-burger-1b447.firebaseio.com/ingredients.json')
+        //     .then(res => {
+        //         console.log('res',res);
+        //         this.setState({ingredients: res.data});
+        //     });
     };
 
     updatePurchaseState = (ingredients) => {
@@ -99,7 +100,7 @@ class BurgerBuilder extends Component {
 
     render () {
 
-        const disabledInfo = {...this.state.ingredients};
+        const disabledInfo = {...this.props.ings};
         for(let key in disabledInfo) {
             disabledInfo[key] = disabledInfo[key] <= 0 
         };
@@ -112,13 +113,13 @@ class BurgerBuilder extends Component {
 
         let burger = <Spinner /> 
         
-        if(this.state.ingredients) {
+        if(this.props.ings) {
             burger = (
                 <Aux>
-                    <Burger ingredients={this.state.ingredients}/>
+                    <Burger ingredients={this.props.ings}/>
                     <BuildControls 
-                        ingredientAdded={this.addIngredientHandler}
-                        ingredientRemoved={this.removeIngredientHandler}
+                        ingredientAdded={this.props.onIngredientAdded}
+                        ingredientRemoved={this.props.onIngredientRemoved}
                         disabled={disabledInfo}
                         viewCart={this.viewCartToggle}
                         price={this.state.totalPrice}
@@ -129,7 +130,7 @@ class BurgerBuilder extends Component {
             modalContent = 
                 <OrderSummary 
                     price={this.state.totalPrice}
-                    ingredients={this.state.ingredients}
+                    ingredients={this.props.ings}
                     modalClosed={this.viewCartToggle}
                     continue={this.viewCartContinueHandler}/>
             ;
@@ -145,5 +146,17 @@ class BurgerBuilder extends Component {
         );
     };
 };
+const mapStateToProps = state => {
+    return {
+        ings: state.ingredients
+    };
+}
 
-export default errorHandler(BurgerBuilder, axios);
+const mapDispatchToProps = dispatch => {
+    return {
+        onIngredientAdded: (ingName) => dispatch({type: actionTypes.ADD_INGREDIENT, ingredientName: ingName}),
+        onIngredientRemoved: (ingName) => dispatch({type: actionTypes.REMOVE_INGREDIENT, ingredientName: ingName})
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps) (errorHandler(BurgerBuilder, axios));
