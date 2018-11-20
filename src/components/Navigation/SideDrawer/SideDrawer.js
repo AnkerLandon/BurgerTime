@@ -6,26 +6,24 @@ import Logo from '../../Logo/Logo';
 import NavItems from '../Items/Items';
 import classes from './SideDrawer.css';
 
-const sideDrawer = (props) => {
-    
-    let attachedClasses = [classes.SideDrawer, classes.Close];
+const sideDrawer = props => {
+  let attachedClasses = [classes.SideDrawer, classes.Close];
 
-    if(props.menuOpen) {
-        attachedClasses = [classes.SideDrawer, classes.Open];
-    }
+  if (props.menuOpen) {
+    attachedClasses = [classes.SideDrawer, classes.Open];
+  }
 
-    return (
-        <Aux>
-            <Backdrop clicked={props.toggle} show={props.menuOpen}/>
-            <div className={attachedClasses.join(' ')} >
-                <Logo height="11%"/>
-                <nav >
-                    <NavItems />
-                </nav>
-            </div> 
-        </Aux>
-        
-    );
+  return (
+    <Aux>
+      <Backdrop clicked={props.toggle} show={props.menuOpen} />
+      <div className={attachedClasses.join(' ')}>
+        <Logo height="11%" />
+        <nav>
+          <NavItems isAuthenticated={props.isAuthenticated} />
+        </nav>
+      </div>
+    </Aux>
+  );
 };
 
 export default sideDrawer;

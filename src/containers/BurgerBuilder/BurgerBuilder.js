@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
 import Aux from '../../HOC/Auxx';
@@ -11,100 +11,108 @@ import errorHandler from '../../HOC/ErrorHandler/ErrorHandler';
 import * as actions from '../../store/actions/index';
 import axios from '../../axios-orders';
 
-
-
 class BurgerBuilder extends Component {
+  state = {
+    viewCart: false
+  };
 
-    state = {
-        viewCart: false
-    };
+  componentDidMount() {
+    this.props.onInitIngredients();
+    console.log(this.props);
+  }
 
-    componentDidMount () {
-        this.props.onInitIngredients();
-        console.log(this.props);
-    };
+  updatePurchaseState = ingredients => {
+    const sum = Object.keys(ingredients)
+      .map(igKey => ingredients[igKey])
+      .reduce((sum, el) => sum + el, 0);
 
-    updatePurchaseState = (ingredients) => {
-       
-        const sum = Object.keys(ingredients)
-            .map(igKey => ingredients[igKey])
-            .reduce((sum, el) => sum + el, 0);
+    return sum > 0;
+  };
 
-        return sum > 0;
-    };
+  viewCartToggle = () => {
+    if (this.props.isAuth) {
+      this.setState({ viewCart: !this.state.viewCart });
+    } else {
+      this.props.onSetAuthRedirectPath('/checkout');
+      this.props.history.push('/auth');
+    }
+  };
 
-    viewCartToggle = () => {
-        this.setState({viewCart: !this.state.viewCart});
-    };
+  viewCartContinueHandler = () => {
+    this.props.onInitPurchase();
+    this.props.history.push('/checkout');
+  };
 
-    viewCartContinueHandler = () => {
-        this.props.onInitPurchase();
-        this.props.history.push('/checkout');
-    };
+  render() {
+    const disabledInfo = { ...this.props.ings };
+    for (let key in disabledInfo) {
+      disabledInfo[key] = disabledInfo[key] <= 0;
+    }
 
-    render () {
+    let modalContent = null;
 
-        const disabledInfo = {...this.props.ings};
-        for(let key in disabledInfo) {
-            disabledInfo[key] = disabledInfo[key] <= 0 
-        };
+    if (this.state.loading) {
+      modalContent = <Spinner />;
+    }
 
-        let modalContent = null;
+    let burger = <Spinner />;
 
-        if(this.state.loading) {
-            modalContent = <Spinner />;
-        }
+    if (this.props.ings) {
+      burger = (
+        <Aux>
+          <Burger ingredients={this.props.ings} />
+          <BuildControls
+            ingredientAdded={this.props.onIngredientAdded}
+            ingredientRemoved={this.props.onIngredientRemoved}
+            disabled={disabledInfo}
+            viewCart={this.viewCartToggle}
+            price={this.props.price}
+            isAuth={this.props.isAuth}
+            purchasable={!this.updatePurchaseState(this.props.ings)}
+          />
+        </Aux>
+      );
 
-        let burger = <Spinner /> 
-        
-        if(this.props.ings) {
-            burger = (
-                <Aux>
-                    <Burger ingredients={this.props.ings}/>
-                    <BuildControls 
-                        ingredientAdded={this.props.onIngredientAdded}
-                        ingredientRemoved={this.props.onIngredientRemoved}
-                        disabled={disabledInfo}
-                        viewCart={this.viewCartToggle}
-                        price={this.props.price}
-                        purchasable={!this.updatePurchaseState(this.props.ings)}/>
-                </Aux>
-            );
+      modalContent = (
+        <OrderSummary
+          price={this.props.price}
+          ingredients={this.props.ings}
+          modalClosed={this.viewCartToggle}
+          continue={this.viewCartContinueHandler}
+        />
+      );
+    }
 
-            modalContent = 
-                <OrderSummary 
-                    price={this.props.price}
-                    ingredients={this.props.ings}
-                    modalClosed={this.viewCartToggle}
-                    continue={this.viewCartContinueHandler}/>
-            ;
-        };
-
-        return (
-            <Aux>
-                <Modal show={this.state.viewCart} modalClosed={this.viewCartToggle}>
-                    {modalContent}
-                </Modal>
-                {burger}
-            </Aux>
-        );
-    };
-};
-const mapStateToProps = state => {
-    return {
-        ings: state.burgerBuilder.ingredients,
-        price: state.burgerBuilder.totalPrice,
-        error: state.burgerBuilder.error
-    };
+    return (
+      <Aux>
+        <Modal show={this.state.viewCart} modalClosed={this.viewCartToggle}>
+          {modalContent}
+        </Modal>
+        {burger}
+      </Aux>
+    );
+  }
 }
+const mapStateToProps = state => {
+  return {
+    ings: state.burgerBuilder.ingredients,
+    price: state.burgerBuilder.totalPrice,
+    error: state.burgerBuilder.error,
+    isAuth: state.auth.token !== null
+  };
+};
 
 const mapDispatchToProps = dispatch => {
-    return {
-        onIngredientAdded: (ingName) => dispatch(actions.addIngredient(ingName)),
-        onIngredientRemoved: (ingName) => dispatch(actions.removeIngredient(ingName)),
-        onInitIngredients: () => dispatch(actions.initIngredients()),
-        onInitPurchase: () => dispatch(actions.purchaseInit())
-    };
-}
+  return {
+    onIngredientAdded: ingName => dispatch(actions.addIngredient(ingName)),
+    onIngredientRemoved: ingName => dispatch(actions.removeIngredient(ingName)),
+    onInitIngredients: () => dispatch(actions.initIngredients()),
+    onInitPurchase: () => dispatch(actions.purchaseInit()),
+    onSetAuthRedirectPath: path => dispatch(actions.setAuthRedirectPath(path))
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps) (errorHandler(BurgerBuilder, axios));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(errorHandler(BurgerBuilder, axios));
