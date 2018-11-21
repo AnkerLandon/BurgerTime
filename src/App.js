@@ -1,15 +1,26 @@
 import React, { Component } from 'react';
 import { Route, withRouter, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
+import asyncComponent from './HOC/asyncComponet/asyncComponent';
 
 import Layout from './HOC/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
-import Checkout from './containers/Checkout/Checkout';
-import Orders from './containers/Orders/Orders';
-import Auth from './containers/Auth/Auth';
+// import Checkout from './containers/Checkout/Checkout';
+// import Orders from './containers/Orders/Orders';
+// import Auth from './containers/Auth/Auth';
 import Logout from './containers/Auth/Logout/logout';
 // import { authCheckSate } from './store/actions';
 import * as actions from './store/actions/index';
+
+const asyncCheckout = asyncComponent(() => {
+  return import('./containers/Checkout/Checkout');
+});
+const asyncOrders = asyncComponent(() => {
+  return import('./containers/Orders/Orders');
+});
+const asyncAuth = asyncComponent(() => {
+  return import('./containers/Auth/Auth');
+});
 
 class App extends Component {
   componentDidMount() {
@@ -20,7 +31,7 @@ class App extends Component {
     let routes = (
       <div>
         <Route path="/" exact component={BurgerBuilder} />
-        <Route path="/auth" component={Auth} />
+        <Route path="/auth" component={asyncAuth} />
         <Redirect to="/" />
       </div>
     );
@@ -29,10 +40,10 @@ class App extends Component {
       routes = (
         <div>
           <Route path="/" exact component={BurgerBuilder} />
-          <Route path="/orders" component={Orders} />
-          <Route path="/checkout" component={Checkout} />
+          <Route path="/orders" component={asyncOrders} />
+          <Route path="/checkout" component={asyncCheckout} />
           <Route path="/logout" component={Logout} />
-          <Route path="/auth" component={Auth} />
+          <Route path="/auth" component={asyncAuth} />
         </div>
       );
     }

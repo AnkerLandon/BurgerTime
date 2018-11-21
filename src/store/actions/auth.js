@@ -44,7 +44,7 @@ export const checkAuthTimeout = experationTime => {
 export const auth = (email, password, isSignUp) => {
   return dispatch => {
     dispatch(authStart());
-    console.log('test', email, password);
+    // console.log('test', email, password);
     let APIURL = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=${APIKEY}`;
     const AuthData = {
       email: email,
@@ -57,7 +57,7 @@ export const auth = (email, password, isSignUp) => {
     axios
       .post(APIURL, AuthData)
       .then(res => {
-        console.log(res);
+        // console.log(res);
         // save token and expiration Date in Browser storage
         const expirationDate = new Date(
           new Date().getTime() + res.data.expiresIn * 1000
