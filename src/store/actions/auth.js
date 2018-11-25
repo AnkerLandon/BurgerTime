@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as actionTypes from './actionTypes';
 
-import APIKEY from '../../../src/ENV';
+const APIKEY = process.env.REACT_APP_FIREBASE_API_KEY;
 
 export const authStart = () => {
   return {
@@ -44,7 +44,7 @@ export const checkAuthTimeout = experationTime => {
 export const auth = (email, password, isSignUp) => {
   return dispatch => {
     dispatch(authStart());
-    // console.log('test', email, password);
+
     let APIURL = `https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=${APIKEY}`;
     const AuthData = {
       email: email,
